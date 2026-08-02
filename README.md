@@ -4,6 +4,12 @@
 
 <p align="center"><img src="logo.png" width="128" alt="Flybook logo"></p>
 
+<p align="center">
+  <a href="https://github.com/Luchowl/flybook/releases"><img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/privacy-100%25%20local%20%E2%80%94%20no%20tracking-green" alt="Privacy: 100% local, no tracking">
+</p>
+
 ## Features
 
 - **Log flights** — capture date, flight number, airline, departure/arrival airports, aircraft, registration, seat, cabin class, times, distance, and notes.
