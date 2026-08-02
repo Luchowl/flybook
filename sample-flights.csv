@@ -1,0 +1,11 @@
+Flight Date,Flight Number,Airline,From,To,Aircraft,Seat,Class,Notes,Distance,Dep Time,Arr Time,Duration
+2026-05-27,W45143,Wizz Air,TIA,MRS,A321neo,12A,Economy,"Great views over the Alps",1046,10:55,13:20,145
+2026-03-14,AF1166,Air France,CDG,JFK,A350-900,32K,Premium Economy,"First A350 flight!",5840,13:35,15:50,495
+2025-12-22,BA288,British Airways,JFK,LHR,B777-300ER,18A,Business,"Christmas trip home",5541,19:25,07:15,420
+2025-10-05,EK147,Emirates,DXB,AUH,A380-800,7C,First,"Short hop on an A380",390,13:10,14:05,55
+2025-08-09,U28742,easyJet,MRS,BCN,A320neo,23F,Economy,"Weekend in Barcelona",341,08:20,09:55,95
+2025-06-30,NH215,ANA,HND,SFO,B787-9,41J,Economy,"Red-eye over the Pacific",8251,22:30,16:05,590
+2025-04-18,LH401,Lufthansa,FRA,JFK,A340-600,21H,Business,"New York via Frankfurt",6202,13:00,15:30,510
+2025-02-02,KL1221,KLM,AMS,NCE,737-800,11F,Economy,"Ski trip to the Riviera",944,09:45,11:40,115
+2024-12-28,QR0069,Qatar Airways,DOH,CDG,B777-300ER,9A,Business,"Stopover in Doha",5139,02:05,08:10,385
+2024-10-14,QF001,Qantas,LHR,SYD,A380-800,35H,Economy,"The long one — London to Sydney",17004,21:05,14:30,1425
