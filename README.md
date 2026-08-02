@@ -32,7 +32,7 @@ Want to try it with demo data? Tap **Load sample flights** in **Settings**, or i
 
 Get the latest release from the [Releases page](https://github.com/Luchowl/flybook/releases) on GitHub. Download the `flybook-<version>.apk` and install it on your Android device.
 
-> Install by opening the APK on your device (or `adb install flybook-<version>.apk`). You may need to allow installation from unknown sources.
+> Install by opening the APK on your device (or `adb install flybook-<version>-release.apk`). You may need to allow installation from unknown sources.
 
 ## Getting Started
 
