@@ -23,7 +23,18 @@
 
 ## Screenshots
 
-<p align="center"><img src="bg.png" width="640" alt="Flybook"></p>
+<table>
+  <tr>
+    <td style="border: 1px solid #d0d7de; padding: 8px;"><img src="screenshots/screenshot-1.png" width="200" height="400" style="object-fit: contain; width: 200px; height: 400px;" alt="Screenshot 1"></td>
+    <td style="border: 1px solid #d0d7de; padding: 8px;"><img src="screenshots/screenshot-2.png" width="200" height="400" style="object-fit: contain; width: 200px; height: 400px;" alt="Screenshot 2"></td>
+    <td style="border: 1px solid #d0d7de; padding: 8px;"><img src="screenshots/screenshot-3.png" width="200" height="400" style="object-fit: contain; width: 200px; height: 400px;" alt="Screenshot 3"></td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid #d0d7de; padding: 8px;"><img src="screenshots/screenshot-4.png" width="200" height="400" style="object-fit: contain; width: 200px; height: 400px;" alt="Screenshot 4"></td>
+    <td style="border: 1px solid #d0d7de; padding: 8px;"><img src="screenshots/screenshot-5.png" width="200" height="400" style="object-fit: contain; width: 200px; height: 400px;" alt="Screenshot 5"></td>
+    <td style="border: 1px solid #d0d7de; padding: 8px;"><img src="screenshots/screenshot-6.png" width="200" height="400" style="object-fit: contain; width: 200px; height: 400px;" alt="Screenshot 6"></td>
+  </tr>
+</table>
 
 ## Usage
 
