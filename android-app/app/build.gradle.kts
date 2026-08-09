@@ -14,11 +14,11 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.neonstick.flybook"
+    namespace = "com.luchowl.flybook"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.neonstick.flybook"
+        applicationId = "com.luchowl.flybook"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -51,6 +51,11 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     packaging {

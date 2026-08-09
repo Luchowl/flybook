@@ -1,0 +1,11 @@
+Flybook is a private, offline flight logbook for Android. Your logbook lives entirely on your device — no account, no cloud, no tracking.
+
+Features:
+- Log flights with date, flight number, airline, departure and arrival airports, aircraft, registration, seat, cabin class, times, distance, and notes
+- Smart auto-enrichment: enter airport IATA/ICAO codes and an airline, and Flybook fills in names, cities, countries, aircraft types, great-circle distance, and estimated duration from bundled reference data
+- Dashboard with at-a-glance stats: flights, distance, time in air, airlines, countries, and airports, plus a monthly activity chart and unlockable achievements
+- Your Flight Story: a wrapped-style review of your flying history
+- Flight map: every route drawn on an interactive map with multiple base styles, geodesic route lines, and color customization
+- Stats and rankings: most-flown aircraft, airlines, routes, airports, tail registrations, seats, and countries
+- Import and export your logbook as CSV or JSON, including my.flightradar24.com export format
+- Fully offline: the only network access is map tiles from OpenStreetMap-based servers, fetched only when you open the map

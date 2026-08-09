@@ -89,7 +89,7 @@ Flybook is built around your privacy:
 
 ```
 android-app/
-├── app/src/main/java/com/neonstick/flybook/
+├── app/src/main/java/com/luchowl/flybook/
 │   ├── MainActivity.kt          # App entry point + bottom navigation
 │   ├── FlybookApp.kt            # Application class
 │   ├── data/                    # Room DB, DAO, repository, reference data, enrichment

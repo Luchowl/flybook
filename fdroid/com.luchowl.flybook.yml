@@ -1,0 +1,27 @@
+Categories:
+  - Science & Education
+License: MIT
+AuthorName: Luchowl
+SourceCode: https://github.com/Luchowl/flybook
+IssueTracker: https://github.com/Luchowl/flybook/issues
+
+AutoName: Flybook
+
+RepoType: git
+Repo: https://github.com/Luchowl/flybook
+Binaries: https://github.com/Luchowl/flybook/releases/download/v%v/flybook-%v.apk
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: android-app/app
+    gradle:
+      - yes
+
+AllowedAPKSigningKeys: 4fdadc3aabdd07b0b42b7c21f7f7d426699c10313408ed4d06c7644204acc257
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

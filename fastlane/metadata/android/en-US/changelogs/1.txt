@@ -1,0 +1,1 @@
+Initial release. Log and enrich your flights, explore your dashboard, map, stats, and achievements, and export your logbook anytime.
