@@ -14,7 +14,7 @@ Binaries: https://github.com/Luchowl/flybook/releases/download/v%v/flybook-%v.ap
 Builds:
   - versionName: 1.0.0
     versionCode: 1
-    commit: v1.0.0
+    commit: 2d69f225aa421ba3505505678f9e77110f13577e
     subdir: android-app/app
     gradle:
       - yes
