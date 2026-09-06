@@ -36,6 +36,12 @@ interface FlightDao {
     @Query("DELETE FROM flights")
     suspend fun clear()
 
+    @androidx.room.Transaction
+    suspend fun replaceAll(flights: List<Flight>) {
+        clear()
+        for (flight in flights) insert(flight)
+    }
+
     @Query("SELECT COUNT(*) FROM flights")
     fun count(): Flow<Int>
 }

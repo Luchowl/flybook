@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.luchowl.flybook.data.Flight
 import com.luchowl.flybook.ui.FlybookViewModel
 import com.luchowl.flybook.ui.PanelCard
 import com.luchowl.flybook.ui.ScreenTopBar
@@ -49,12 +51,13 @@ fun SettingsScreen(vm: FlybookViewModel = viewModel()) {
     val scope = rememberCoroutineScope()
     val flights by vm.flights.collectAsStateWithLifecycle()
     var confirmClear by remember { mutableStateOf(false) }
+    var pendingImport by remember { mutableStateOf<List<Flight>?>(null) }
+    var confirmSample by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
-            message = "Importing…"
             val parsed = withContext(Dispatchers.IO) {
                 val text = context.contentResolver.openInputStream(uri)
                     ?.bufferedReader(Charsets.UTF_8)
@@ -62,8 +65,7 @@ fun SettingsScreen(vm: FlybookViewModel = viewModel()) {
                 if (text.isNullOrBlank()) emptyList() else Csv.parseFlights(text)
             }
             if (parsed.isNotEmpty()) {
-                vm.importFlights(parsed)
-                message = "Imported ${parsed.size} flights"
+                pendingImport = parsed
             } else {
                 message = "No valid flights found in file"
             }
@@ -141,20 +143,7 @@ fun SettingsScreen(vm: FlybookViewModel = viewModel()) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(
-                        onClick = {
-                            scope.launch {
-                                message = "Loading sample data…"
-                                val parsed = withContext(Dispatchers.IO) {
-                                    Csv.parseFlights(context.assets.open("sample-flights.csv").bufferedReader(Charsets.UTF_8).use { it.readText() })
-                                }
-                                if (parsed.isNotEmpty()) {
-                                    vm.importFlights(parsed)
-                                    message = "Loaded ${parsed.size} sample flights"
-                                } else {
-                                    message = "Failed to load sample data"
-                                }
-                            }
-                        },
+                        onClick = { confirmSample = true },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Load sample flights")
@@ -219,6 +208,58 @@ fun SettingsScreen(vm: FlybookViewModel = viewModel()) {
             },
             dismissButton = {
                 TextButton(onClick = { confirmClear = false }) { Text("Cancel") }
+            },
+        )
+    }
+
+    pendingImport?.let { flights ->
+        AlertDialog(
+            onDismissRequest = { pendingImport = null },
+            title = { Text("Import ${flights.size} flight${if (flights.size == 1) "" else "s"}?") },
+            text = { Text("Add them to your current logbook, or replace everything with the contents of this file?") },
+            confirmButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(onClick = {
+                        vm.importFlights(flights)
+                        pendingImport = null
+                        message = "Imported ${flights.size} flights"
+                    }) { Text("Add") }
+                    TextButton(onClick = {
+                        vm.replaceAllFlights(flights)
+                        pendingImport = null
+                        message = "Replaced logbook with ${flights.size} flights"
+                    }) { Text("Replace all") }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingImport = null }) { Text("Cancel") }
+            },
+        )
+    }
+
+    if (confirmSample) {
+        AlertDialog(
+            onDismissRequest = { confirmSample = false },
+            title = { Text("Load sample flights?") },
+            text = { Text("Caution: this will replace all your current flights with the bundled sample data. Export your logbook first if you want to keep it.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmSample = false
+                    scope.launch {
+                        val parsed = withContext(Dispatchers.IO) {
+                            Csv.parseFlights(context.assets.open("sample-flights.csv").bufferedReader(Charsets.UTF_8).use { it.readText() })
+                        }
+                        if (parsed.isNotEmpty()) {
+                            vm.replaceAllFlights(parsed)
+                            message = "Loaded ${parsed.size} sample flights"
+                        } else {
+                            message = "Failed to load sample data"
+                        }
+                    }
+                }) { Text("Replace") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmSample = false }) { Text("Cancel") }
             },
         )
     }

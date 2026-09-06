@@ -175,9 +175,13 @@ object Stats {
 
     fun longestFlight(flights: List<Flight>): Flight? = flights.maxByOrNull { it.distance }
 
-    fun earlyFlights(flights: List<Flight>): Int = flights.count { it.depHour in 0..7 }
+    fun earlyFlightList(flights: List<Flight>): List<Flight> = flights.filter { it.depHour in 0..7 }
 
-    fun nightFlights(flights: List<Flight>): Int = flights.count { it.depHour >= 22 }
+    fun earlyFlights(flights: List<Flight>): Int = earlyFlightList(flights).size
+
+    fun nightFlightList(flights: List<Flight>): List<Flight> = flights.filter { it.depHour >= 22 }
+
+    fun nightFlights(flights: List<Flight>): Int = nightFlightList(flights).size
 
     private val WIDE_BODY_MARKERS = listOf(
         "A30", "A33", "A34", "A35", "A38", "A310",  // Airbus wide-bodies (names/ICAO)
@@ -199,12 +203,15 @@ object Stats {
         "D10", "DC1", "M11", "MD1", "IL8", "IL9",
     )
 
-    fun wideBodyCount(flights: List<Flight>): Int =
-        flights.count { f ->
-            val type = f.aircraftType.uppercase()
-            val name = f.aircraftName.uppercase()
-            WIDE_BODY_MARKERS.any { type.contains(it) || name.contains(it) } || type in WIDE_BODY_IATA
-        }
+    private fun isWideBody(f: Flight): Boolean {
+        val type = f.aircraftType.uppercase()
+        val name = f.aircraftName.uppercase()
+        return WIDE_BODY_MARKERS.any { type.contains(it) || name.contains(it) } || type in WIDE_BODY_IATA
+    }
+
+    fun wideBodyFlights(flights: List<Flight>): List<Flight> = flights.filter { isWideBody(it) }
+
+    fun wideBodyCount(flights: List<Flight>): Int = wideBodyFlights(flights).size
 
     fun averageDistance(flights: List<Flight>): Double =
         if (flights.isEmpty()) 0.0 else flights.sumOf { it.distance } / flights.size
@@ -252,6 +259,12 @@ object Stats {
 
     fun flightsForCountry(flights: List<Flight>, country: String): List<Flight> =
         flights.filter { it.departureCountry == country || it.arrivalCountry == country }
+
+    fun flightsForCabinClass(flights: List<Flight>, cabinClass: String): List<Flight> =
+        flights.filter { it.cabinClass == cabinClass }
+
+    fun flightsForYear(flights: List<Flight>, year: Int): List<Flight> =
+        flights.filter { Format.year(it.flightDate) == year }
 
     fun achievements(flights: List<Flight>): List<Achievement> {
         val s = overall(flights)

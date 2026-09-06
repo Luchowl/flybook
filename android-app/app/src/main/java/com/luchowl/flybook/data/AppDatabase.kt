@@ -20,7 +20,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "flybook.db"
                 )
-                    .fallbackToDestructiveMigration()
                     .build()
                     .also { instance = it }
             }

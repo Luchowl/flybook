@@ -1,0 +1,10 @@
+Fixes from the F-Droid on-device review:
+- Airline is now saved correctly when picked from the dropdown (2-letter codes like LH, AC, W6 no longer get dropped)
+- Autocomplete dropdowns are more reliable and rank exact codes first
+- CSV export/import now keeps registration, departure/arrival times and duration
+- Stats screen cards are tappable to drill into the flights behind each number
+
+Also new:
+- Import CSV asks whether to add or replace the logbook
+- Loading sample flights now warns that it replaces current data
+- Flight numbers are normalized to uppercase

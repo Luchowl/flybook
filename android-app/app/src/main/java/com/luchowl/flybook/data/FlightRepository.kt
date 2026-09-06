@@ -19,6 +19,8 @@ class FlightRepository(private val dao: FlightDao) {
 
     suspend fun clear() = dao.clear()
 
+    suspend fun replaceAll(flights: List<Flight>) = dao.replaceAll(flights)
+
     fun count(): Flow<Int> = dao.count()
 
     companion object {

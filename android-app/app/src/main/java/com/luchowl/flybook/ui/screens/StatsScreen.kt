@@ -245,9 +245,9 @@ fun StatsScreen(vm: FlybookViewModel = viewModel()) {
     val seats = remember(flights) { Stats.topSeats(flights) }
     val countries = remember(flights) { Stats.topCountries(flights) }
     val longest = remember(flights) { Stats.longestFlight(flights) }
-    val early = remember(flights) { Stats.earlyFlights(flights) }
-    val night = remember(flights) { Stats.nightFlights(flights) }
-    val wideBody = remember(flights) { Stats.wideBodyCount(flights) }
+    val early = remember(flights) { Stats.earlyFlightList(flights) }
+    val night = remember(flights) { Stats.nightFlightList(flights) }
+    val wideBody = remember(flights) { Stats.wideBodyFlights(flights) }
     val avgDistance = remember(flights) { Stats.averageDistance(flights) }
     val avgDuration = remember(flights) { Stats.averageDurationMinutes(flights) }
     val busiestYear = remember(flights) { Stats.busiestYear(flights) }
@@ -334,25 +334,37 @@ fun StatsScreen(vm: FlybookViewModel = viewModel()) {
                 }
             }
 
-            // Highlights (early/night, wide-body, busiest year)
+            // Highlights (early/night, wide-body, busiest year) — tap to see the flights
             PanelCard {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     SectionHeader("Highlights")
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatTile("$early", "Early (before 8am)", Icons.Default.Schedule, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-                        StatTile("$night", "Night (after 10pm)", Icons.Default.Schedule, MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+                        StatTile("${early.size}", "Early (before 8am)", Icons.Default.Schedule, MaterialTheme.colorScheme.primary, Modifier.weight(1f),
+                            onClick = { detail = "Early flights (before 8am)" to early })
+                        StatTile("${night.size}", "Night (after 10pm)", Icons.Default.Schedule, MaterialTheme.colorScheme.tertiary, Modifier.weight(1f),
+                            onClick = { detail = "Night flights (after 10pm)" to night })
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatTile("$wideBody", "Wide-body", Icons.Default.FlightTakeoff, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
-                        StatTile(busiestYear?.let { "${it.first}" } ?: "—", "Busiest year (${busiestYear?.second ?: 0} flts)", Icons.Default.EmojiEvents, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                        StatTile("${wideBody.size}", "Wide-body", Icons.Default.FlightTakeoff, MaterialTheme.colorScheme.secondary, Modifier.weight(1f),
+                            onClick = { detail = "Wide-body flights" to wideBody })
+                        busiestYear?.let { (year, count) ->
+                            StatTile("$year", "Busiest year ($count flts)", Icons.Default.EmojiEvents, MaterialTheme.colorScheme.primary, Modifier.weight(1f),
+                                onClick = { detail = "Flights in $year" to Stats.flightsForYear(flights, year) })
+                        } ?: StatTile("—", "Busiest year", Icons.Default.EmojiEvents, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         val topClass = Stats.topCabinClass(flights)
-                        StatTile(topClass?.label ?: "—", if (topClass != null) "Most flown class (${topClass.count} ${if (topClass.count == 1) "time" else "times"})" else "Most flown class", Icons.Default.AirlineSeatReclineExtra, MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+                        StatTile(
+                            topClass?.label ?: "—",
+                            if (topClass != null) "Most flown class (${topClass.count} ${if (topClass.count == 1) "time" else "times"})" else "Most flown class",
+                            Icons.Default.AirlineSeatReclineExtra, MaterialTheme.colorScheme.tertiary, Modifier.weight(1f),
+                            onClick = topClass?.let { c -> { detail = "${c.label} class" to Stats.flightsForCabinClass(flights, c.label) } },
+                        )
                     }
                 }
             }
 
+            // Averages — read-only summary (no drill-down needed)
             PanelCard {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     SectionHeader("Averages")
@@ -367,9 +379,9 @@ fun StatsScreen(vm: FlybookViewModel = viewModel()) {
                 }
             }
 
-            // Longest haul
+            // Longest haul — tap for the full flight record
             longest?.let { f ->
-                PanelCard {
+                PanelCard(onClick = { flightDetail = f }) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         SectionHeader("Longest Haul")
                         Text(

@@ -2,6 +2,7 @@ package com.luchowl.flybook.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,32 +81,50 @@ fun StatTile(
     icon: ImageVector,
     tint: Color,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     PanelCard(modifier = modifier, contentPadding = PaddingValues(14.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        val content = @Composable {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(tint.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                    Text(
+                        label.uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.6.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        if (onClick != null) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(tint.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center,
+                    .clickable { onClick() }
             ) {
-                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+                content()
             }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    value,
-                    style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                )
-                Text(
-                    label.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.6.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        } else {
+            content()
         }
     }
 }

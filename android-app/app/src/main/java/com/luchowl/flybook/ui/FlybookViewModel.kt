@@ -63,4 +63,14 @@ class FlybookViewModel(application: Application) : AndroidViewModel(application)
             repo.addAll(enriched)
         }
     }
+
+    fun replaceAllFlights(flights: List<Flight>) {
+        viewModelScope.launch {
+            val ref = ensureRef()
+            val enriched = withContext(Dispatchers.Default) {
+                flights.map { Enricher.enrich(it, ref) }
+            }
+            repo.replaceAll(enriched)
+        }
+    }
 }

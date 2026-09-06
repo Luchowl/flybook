@@ -27,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,11 +39,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
-import com.luchowl.flybook.data.Airport
 import com.luchowl.flybook.data.Enricher
 import com.luchowl.flybook.data.Flight
 import com.luchowl.flybook.data.ReferenceData
@@ -50,6 +51,7 @@ import com.luchowl.flybook.ui.ScreenTopBar
 import com.luchowl.flybook.util.Csv
 import com.luchowl.flybook.util.Format
 import java.util.Calendar
+import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
 
@@ -78,18 +80,19 @@ private fun AutoCompleteField(
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(),
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
+                .onFocusChanged { if (!it.isFocused) expanded = false },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            val filtered = suggestions.filter { it.contains(value, ignoreCase = true) }.take(8)
-            if (filtered.isEmpty()) {
+            val options = rankedSuggestions(suggestions, value)
+            if (options.isEmpty()) {
                 DropdownMenuItem(
                     text = { Text("No matches", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     onClick = { expanded = false },
                 )
             } else {
-                filtered.forEach { opt ->
+                options.forEach { opt ->
                     DropdownMenuItem(
                         text = { Text(opt, maxLines = 1) },
                         onClick = {
@@ -103,20 +106,69 @@ private fun AutoCompleteField(
     }
 }
 
+/**
+ * Code-first ranking for autocomplete suggestions like "FRA · Frankfurt (Germany)".
+ * Exact code wins, then code prefix, then label prefix, then any-substring matches,
+ * so typing a code surfaces the matching airport/airline instead of burying it
+ * under countries/cities that merely contain the letters.
+ */
+internal fun rankedSuggestions(suggestions: List<String>, query: String, max: Int = MAX_SUGGESTIONS): List<String> {
+    val q = query.trim()
+    if (q.isEmpty()) return suggestions.take(max)
+    val upper = q.uppercase(Locale.ROOT)
+    return suggestions
+        .mapNotNull { label ->
+            val li = label.uppercase(Locale.ROOT)
+            if (!li.contains(upper)) {
+                null
+            } else {
+                val code = label.substringBefore(" · ").uppercase(Locale.ROOT)
+                val rank = when {
+                    code == upper -> 0
+                    code.startsWith(upper) -> 1
+                    li.startsWith(upper) -> 2
+                    else -> 3
+                }
+                label to rank
+            }
+        }
+        .sortedWith(compareBy({ it.second }, { it.first }))
+        .take(max)
+        .map { it.first }
+}
+
+private const val MAX_SUGGESTIONS = 8
+
 private fun airportSuggestions(ref: ReferenceData): List<String> =
-    ref.airports.values.distinctBy { it.iata.ifEmpty { it.icao } }.map { a ->
-        "${a.iata.ifEmpty { a.icao }} · ${a.city} (${a.country})"
-    }
+    ref.airports.values
+        .map { a -> a to a.iata.ifEmpty { a.icao } }
+        .filter { (_, code) -> code.isNotEmpty() }
+        .distinctBy { (_, code) -> code }
+        .map { (a, code) ->
+            buildString {
+                append(code)
+                if (a.city.isNotEmpty()) {
+                    append(" · ").append(a.city)
+                    if (a.country.isNotEmpty()) append(" (").append(a.country).append(")")
+                } else if (a.country.isNotEmpty()) {
+                    append(" · ").append(a.country)
+                }
+            }
+        }
 
 private fun airlineSuggestions(ref: ReferenceData): List<String> =
-    ref.airlines.values.distinctBy { it.iata.ifEmpty { it.icao } }.map { a ->
-        "${a.iata.ifEmpty { a.icao }} · ${a.name}"
-    }
+    ref.airlines.values
+        .map { a -> a to a.iata.ifEmpty { a.icao } }
+        .filter { (_, code) -> code.isNotEmpty() }
+        .distinctBy { (_, code) -> code }
+        .map { (a, code) -> "$code · ${a.name}" }
 
 private fun planeSuggestions(ref: ReferenceData): List<String> =
-    ref.planes.values.distinctBy { it.icao.ifEmpty { it.iata } }.map { p ->
-        "${p.icao.ifEmpty { p.iata }} · ${p.name}"
-    }
+    ref.planes.values
+        .map { p -> p to p.icao.ifEmpty { p.iata } }
+        .filter { (_, code) -> code.isNotEmpty() }
+        .distinctBy { (_, code) -> code }
+        .map { (p, code) -> "$code · ${p.name}" }
 
 private val cabinClassOptions = listOf("Economy", "Premium Economy", "Business", "First")
 
@@ -138,7 +190,7 @@ fun FlightFormScreen(
     val today = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
     var flightDate by remember { mutableStateOf(editing?.flightDate ?: utcDateMillis(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))) }
-    var flightNumber by remember { mutableStateOf(editing?.flightNumber ?: "") }
+    var flightNumber by remember { mutableStateOf(editing?.flightNumber?.uppercase(Locale.ROOT) ?: "") }
     var airline by remember { mutableStateOf(editing?.let { it.airlineName.ifEmpty { it.airlineIata } } ?: "") }
     var dep by remember { mutableStateOf(editing?.let { Format.code(it.departureIata, it.departureIcao) } ?: "") }
     var arr by remember { mutableStateOf(editing?.let { Format.code(it.arrivalIata, it.arrivalIcao) } ?: "") }
@@ -170,18 +222,20 @@ fun FlightFormScreen(
     fun save() {
         val depCode = Csv.extractCode(dep)
         val arrCode = Csv.extractCode(arr)
-        val airlineCode = Csv.extractCode(airline)
-        val aircraftCode = Csv.extractCode(aircraft)
+        val airlineCode = Csv.extractCode(airline, 2) // airline IATA can be 2 chars (LH, AC, W6)
+        val aircraftCode = Csv.extractCode(aircraft, 2)
         if (depCode.isBlank() || arrCode.isBlank()) return
 
         val flight = Flight(
             id = editing?.id ?: UUID.randomUUID().toString(),
             flightDate = flightDate,
-            flightNumber = flightNumber.trim(),
+            flightNumber = flightNumber.trim().uppercase(Locale.ROOT),
             airlineIata = airlineCode,
+            airlineName = if (airlineCode.isEmpty()) airline.trim() else "",
             departureIata = depCode,
             arrivalIata = arrCode,
             aircraftType = aircraftCode,
+            aircraftName = if (aircraftCode.isEmpty()) aircraft.trim() else "",
             registration = registration.trim().uppercase(),
             seatNumber = seat.trim(),
             cabinClass = cabinClass.trim(),
@@ -225,7 +279,7 @@ fun FlightFormScreen(
 
             OutlinedTextField(
                 value = flightNumber,
-                onValueChange = { flightNumber = it },
+                onValueChange = { flightNumber = it.uppercase(Locale.ROOT) },
                 label = { Text("Flight Number") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),

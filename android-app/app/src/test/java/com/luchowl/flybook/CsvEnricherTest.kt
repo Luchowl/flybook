@@ -6,7 +6,9 @@ import com.luchowl.flybook.data.Enricher
 import com.luchowl.flybook.data.Flight
 import com.luchowl.flybook.data.Plane
 import com.luchowl.flybook.data.ReferenceData
+import com.luchowl.flybook.ui.screens.rankedSuggestions
 import com.luchowl.flybook.util.Csv
+import com.luchowl.flybook.util.Format
 import com.luchowl.flybook.util.Stats
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -50,6 +52,38 @@ class CsvEnricherTest {
         assertEquals("LH", Csv.extractCode("LH", 2))
         assertEquals("", Csv.extractCode("Air Canada", 2))
         assertEquals("", Csv.extractCode("", 2))
+    }
+
+    @Test
+    fun extractCode_formDropdownLabel_withTwoLetterAirline() {
+        assertEquals("LH", Csv.extractCode("LH · Lufthansa", 2))
+        assertEquals("W6", Csv.extractCode("W6 · Wizz Air", 2))
+    }
+
+    @Test
+    fun rankedSuggestions_surfacesExactCodeBeforeSubstringMatches() {
+        val suggestions = listOf(
+            "LYS · Lyon (France)",
+            "MRS · Marseille (France)",
+            "NCE · Nice (France)",
+            "TLS · Toulouse (France)",
+            "FRA · Frankfurt (Germany)",
+        )
+        val result = rankedSuggestions(suggestions, "FRA")
+        assertEquals("FRA · Frankfurt (Germany)", result.first())
+    }
+
+    @Test
+    fun rankedSuggestions_codePrefixBeatsCountrySubstring() {
+        val suggestions = listOf(
+            "CDG · Paris (France)",
+            "LYS · Lyon (France)",
+            "FRA · Frankfurt (Germany)",
+            "FRU · Bishkek (Kyrgyzstan)",
+        )
+        val result = rankedSuggestions(suggestions, "FR")
+        assertEquals(listOf("FRA · Frankfurt (Germany)", "FRU · Bishkek (Kyrgyzstan)"), result.take(2))
+        assertTrue("France airports should still be listed below the code matches", result.size > 2)
     }
 
     @Test
@@ -158,6 +192,56 @@ class CsvEnricherTest {
             Flight(id = "8", flightDate = 0L, aircraftName = "", aircraftType = "388"),
         )
         assertEquals(5, Stats.wideBodyCount(flights))
+        assertEquals(listOf("1", "2", "5", "6", "8"), Stats.wideBodyFlights(flights).map { it.id })
+    }
+
+    @Test
+    fun categoryFlightLists_matchTheirCounts() {
+        val flights = (1..10).map {
+            Flight(
+                id = "$it", flightDate = 0L,
+                depHour = when (it % 3) { 0 -> 6; 1 -> 23; else -> 12 },
+                cabinClass = if (it % 2 == 0) "Business" else "Economy",
+                aircraftType = if (it <= 3) "A388" else "A320",
+            )
+        }
+        assertEquals(Stats.earlyFlights(flights), Stats.earlyFlightList(flights).size)
+        assertEquals(Stats.nightFlights(flights), Stats.nightFlightList(flights).size)
+        assertEquals(5, Stats.flightsForCabinClass(flights, "Business").size)
+        assertEquals(3, Stats.wideBodyFlights(flights).size)
+        assertEquals(10, Stats.flightsForYear(flights, 1970).size)
+    }
+
+    @Test
+    fun csvExportImport_roundTrip_preservesRegistrationTimesAndDuration() {
+        val original = Flight(
+            id = "1",
+            flightDate = Format.parseIso("2026-09-01")!!,
+            flightNumber = "LH400",
+            airlineIata = "LH",
+            departureIata = "FRA",
+            arrivalIata = "JFK",
+            aircraftType = "A333",
+            registration = "D-AIKF",
+            seatNumber = "14A",
+            cabinClass = "Business",
+            depHour = 10,
+            depMinute = 55,
+            arrHour = 13,
+            arrMinute = 20,
+            distance = 6190.0,
+        )
+        val parsed = Csv.parseFlights(Csv.serialize(listOf(original))).single()
+        assertEquals(original.flightDate, parsed.flightDate)
+        assertEquals("D-AIKF", parsed.registration)
+        assertEquals(10, parsed.depHour)
+        assertEquals(55, parsed.depMinute)
+        assertEquals(13, parsed.arrHour)
+        assertEquals(20, parsed.arrMinute)
+        assertEquals(6190.0, parsed.distance, 0.0)
+
+        val enriched = Enricher.enrich(parsed, ref())
+        assertEquals(145, enriched.durationMinutes)
     }
 
     @Test

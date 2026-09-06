@@ -11,7 +11,7 @@ object Csv {
 
     fun serialize(flights: List<Flight>): String {
         val sb = StringBuilder()
-        sb.appendLine("Flight Date,Flight Number,Airline,From,To,Aircraft,Seat,Class,Notes,Distance")
+        sb.appendLine("Flight Date,Flight Number,Airline,From,To,Aircraft,Seat,Class,Notes,Distance,Registration,Dep Time,Arr Time")
         for (f in flights) {
             val row = listOf(
                 Format.iso(f.flightDate),
@@ -24,11 +24,17 @@ object Csv {
                 f.cabinClass,
                 f.notes,
                 Math.round(f.distance).toString(),
+                f.registration,
+                hhmm(f.depHour, f.depMinute),
+                hhmm(f.arrHour, f.arrMinute),
             )
             sb.appendLine(row.joinToString(",") { field(it) })
         }
         return sb.toString()
     }
+
+    private fun hhmm(hour: Int, minute: Int): String =
+        if (hour < 0) "" else "%02d:%02d".format(hour, minute)
 
     private fun field(value: String): String {
         if (value.contains(',') || value.contains('"') || value.contains('\n')) {
