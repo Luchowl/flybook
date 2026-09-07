@@ -5,7 +5,6 @@ AntiFeatures:
   TetheredNet:
     en-US: Map tiles always come from the baked-in OpenStreetMap, OpenTopoMap, CARTO
       and USGS endpoints; the tile server URL cannot be changed in the app.
-
 Categories:
   - Science & Education
 License: MIT
