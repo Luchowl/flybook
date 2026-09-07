@@ -1,8 +1,10 @@
 AntiFeatures:
   NonFreeNet:
-    en-US: Map styles include CARTO (basemaps.cartocdn.com) and USGS satellite (basemap.nationalmap.gov) tile servers.
+    en-US: Map styles include CARTO (basemaps.cartocdn.com) and USGS satellite (basemap.nationalmap.gov)
+      tile servers.
   TetheredNet:
-    en-US: Map tiles always come from the baked-in OpenStreetMap, OpenTopoMap, CARTO and USGS endpoints; the tile server URL cannot be changed in the app.
+    en-US: Map tiles always come from the baked-in OpenStreetMap, OpenTopoMap, CARTO
+      and USGS endpoints; the tile server URL cannot be changed in the app.
 
 Categories:
   - Science & Education
