@@ -10,5 +10,5 @@
 <li>Flight map: every route drawn on an interactive map with multiple base styles, geodesic route lines, and color customization</li>
 <li>Stats and rankings: most-flown aircraft, airlines, routes, airports, tail registrations, seats, and countries</li>
 <li>Import and export your logbook as CSV or JSON, including my.flightradar24.com export format</li>
-<li>Fully offline: the only network access is map tiles from OpenStreetMap-based servers, fetched only when you open the map</li>
+<li>Fully offline: the only network access is fetching map tiles when you open the map, from one of the bundled servers — OpenStreetMap (tile.openstreetmap.org), OpenTopoMap (tile.opentopomap.org), CARTO (basemaps.cartocdn.com), or USGS satellite imagery (basemap.nationalmap.gov)</li>
 </ul>
