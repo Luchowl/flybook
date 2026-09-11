@@ -5,13 +5,21 @@
 <p align="center"><img src="logo.png" width="128" alt="Flybook logo"></p>
 
 <p align="center">
-  <a href="https://github.com/Luchowl/flybook/releases"><img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/privacy-100%25%20local%20%E2%80%94%20no%20tracking-green" alt="Privacy: 100% local, no tracking">
-[<img src="https://f-droid.org/badge/get-it-on.png"
-    alt="Get it on F-Droid"
-    height="80">]([https://f-droid.org/packages/YOUR.APP.ID](https://f-droid.org/en/packages/com.luchowl.flybook/)
+  <a href="https://github.com/Luchowl/flybook/releases">
+    <img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT">
+  </a>
+  <img
+    src="https://img.shields.io/badge/privacy-100%25%20local%20%E2%80%94%20no%20tracking-green"
+    alt="Privacy: 100% local, no tracking"
+  >
+  <a href="https://f-droid.org/en/packages/com.luchowl.flybook/">
+    <img src="https://img.shields.io/f-droid/v/com.luchowl.flybook?label=F-Droid" alt="Get it on F-Droid">
+  </a>
 </p>
+
 
 ## Features
 
@@ -50,9 +58,7 @@ Want to try it with demo data? Tap **Load sample flights** in **Settings**, or i
 
 ## Download
 
-Get the latest release from the [Releases page](https://github.com/Luchowl/flybook/releases) on GitHub. Download the `flybook-<version>.apk` and install it on your Android device.
-
-> Install by opening the APK on your device (or `adb install flybook-<version>-release.apk`). You may need to allow installation from unknown sources.
+Flybook is available on [F-Droid](https://f-droid.org/en/packages/com.luchowl.flybook/) and as a direct APK from the [Releases page](https://github.com/Luchowl/flybook/releases) on GitHub.
 
 ## Getting Started
 
