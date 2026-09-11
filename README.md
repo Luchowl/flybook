@@ -8,6 +8,9 @@
   <a href="https://github.com/Luchowl/flybook/releases"><img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/privacy-100%25%20local%20%E2%80%94%20no%20tracking-green" alt="Privacy: 100% local, no tracking">
+[<img src="https://f-droid.org/badge/get-it-on.png"
+    alt="Get it on F-Droid"
+    height="80">]([https://f-droid.org/packages/YOUR.APP.ID](https://f-droid.org/en/packages/com.luchowl.flybook/)
 </p>
 
 ## Features
