@@ -262,4 +262,82 @@ class CsvEnricherTest {
         assertEquals(0, f.arrMinute)
         assertEquals(450, f.durationMinutes)
     }
+
+    @Test
+    fun enrich_cseries_becomesA220() {
+        val ref = ReferenceData(
+            mapOf(
+                "CDG" to Airport("CDG", "LFPG", "Paris CDG", "Paris", "France", 49.0, 2.5, "Europe/Paris"),
+                "JFK" to Airport("JFK", "KJFK", "New York JFK", "New York", "USA", 40.6, -73.8, "America/New_York"),
+            ),
+            emptyMap(),
+            mapOf(
+                "CS3" to Plane("CS3", "BCS3", "Bombardier CS300"),
+                "BCS3" to Plane("CS3", "BCS3", "Bombardier CS300"),
+                "CS1" to Plane("CS1", "BCS1", "Bombardier CS100"),
+                "BCS1" to Plane("CS1", "BCS1", "Bombardier CS100"),
+                "223" to Plane("223", "BCS3", "Airbus A220-300"),
+            ),
+        )
+        val byName = Enricher.enrich(
+            Flight(id = "1", flightDate = 0L, departureIata = "CDG", arrivalIata = "JFK", aircraftName = "Bombardier CS300"),
+            ref,
+        )
+        assertEquals("Airbus A220-300", byName.aircraftName)
+        assertEquals("BCS3", byName.aircraftType)
+
+        val byCode = Enricher.enrich(Flight(id = "2", flightDate = 0L, aircraftType = "CS1"), ref)
+        assertEquals("Airbus A220-100", byCode.aircraftName)
+        assertEquals("BCS1", byCode.aircraftType)
+
+        val byIcao = Enricher.enrich(Flight(id = "3", flightDate = 0L, aircraftType = "BCS3"), ref)
+        assertEquals("Airbus A220-300", byIcao.aircraftName)
+        assertEquals("BCS3", byIcao.aircraftType)
+
+        val alreadyA220 = Enricher.enrich(Flight(id = "4", flightDate = 0L, aircraftType = "223"), ref)
+        assertEquals("Airbus A220-300", alreadyA220.aircraftName)
+        assertEquals("223", alreadyA220.aircraftType)
+    }
+
+    @Test
+    fun durationMinutes_usesSeasonalDstOffsets() {
+        val cdg = Airport("CDG", "LFPG", "Paris CDG", "Paris", "France", 49.0, 2.5, "Europe/Paris")
+        val jfk = Airport("JFK", "KJFK", "New York JFK", "New York", "USA", 40.6, -73.8, "America/New_York")
+        // 2026-03-14: US already on DST (UTC-4), France not yet (UTC+1) -> 7h15m
+        assertEquals(435, Enricher.durationMinutes(Format.parseIso("2026-03-14")!!, 13, 35, 15, 50, cdg, jfk))
+        // 2026-01-15: US UTC-5, France UTC+1 -> 8h15m
+        assertEquals(495, Enricher.durationMinutes(Format.parseIso("2026-01-15")!!, 13, 35, 15, 50, cdg, jfk))
+    }
+
+    @Test
+    fun durationMinutes_wrapsToNextDay_withZones() {
+        val cdg = Airport("CDG", "LFPG", "Paris CDG", "Paris", "France", 49.0, 2.5, "Europe/Paris")
+        val tne = Airport("TNE", "LFPV", "Toulouse", "Toulouse", "France", 43.6, 1.36, "Europe/Paris")
+        assertEquals(840, Enricher.durationMinutes(Format.parseIso("2026-01-15")!!, 21, 0, 11, 0, cdg, tne))
+    }
+
+    @Test
+    fun durationMinutes_unknownZones_fallsBackToWallClock() {
+        val a = Airport("AAA", "AAAA", "A", "A", "A", 0.0, 0.0)
+        val b = Airport("BBB", "BBBB", "B", "B", "B", 0.0, 0.0)
+        assertEquals(135, Enricher.durationMinutes(0L, 13, 35, 15, 50, a, b))
+        assertEquals(450, Enricher.durationMinutes(0L, 21, 0, 4, 30, a, b))
+        assertEquals(0, Enricher.durationMinutes(0L, -1, 0, 15, 50, a, b))
+    }
+
+    @Test
+    fun parseAirports_toleratesNullTimezoneFields() {
+        val json = """[
+            {"iata":"JFK","icao":"KJFK","name":"JFK","city":"New York","country":"USA","latitude":40.6,"longitude":-73.8,"timezone":-5.0,"tzDatabase":"America/New_York"},
+            {"iata":"XXX","icao":"XXXX","name":"X","city":"X","country":"X","latitude":1.0,"longitude":2.0,"timezone":null,"tzDatabase":null},
+            {"iata":"YYY","icao":"YYYY","name":"Y","city":"Y","country":"Y","latitude":3.0,"longitude":4.0}
+        ]"""
+        val airports = ReferenceData.parseAirports(json)
+        assertEquals("America/New_York", airports["JFK"]?.tz)
+        assertEquals(-5.0, airports["JFK"]?.tzOffset)
+        assertEquals("", airports["XXX"]?.tz)
+        assertEquals(null, airports["XXX"]?.tzOffset)
+        assertEquals("", airports["YYY"]?.tz)
+        assertEquals(null, airports["YYY"]?.tzOffset)
+    }
 }

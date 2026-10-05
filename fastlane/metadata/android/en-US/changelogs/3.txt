@@ -1,0 +1,3 @@
+- Flight durations now account for the departure and arrival airports' time zones, including daylight saving changes
+- Bombardier CSeries aircraft (CS100/CS300) are now shown as Airbus A220-100/A220-300
+- Fixed a crash on startup caused by airports without time zone data

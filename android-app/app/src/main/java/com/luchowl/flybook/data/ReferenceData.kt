@@ -15,6 +15,8 @@ data class Airport(
     val country: String,
     val lat: Double,
     val lon: Double,
+    val tz: String = "",
+    val tzOffset: Double? = null,
 )
 
 data class Airline(
@@ -62,7 +64,7 @@ class ReferenceData(
                 instance ?: load(context).also { instance = it }
             }
 
-        private fun parseAirports(json: String): Map<String, Airport> {
+        internal fun parseAirports(json: String): Map<String, Airport> {
             val map = HashMap<String, Airport>()
             val arr = JSONArray(json)
             for (i in 0 until arr.length()) {
@@ -78,6 +80,8 @@ class ReferenceData(
                     country = o.optString("country", ""),
                     lat = o.optDouble("latitude", 0.0),
                     lon = o.optDouble("longitude", 0.0),
+                    tz = if (o.isNull("tzDatabase")) "" else o.optString("tzDatabase", ""),
+                    tzOffset = if (o.isNull("timezone")) null else o.optDouble("timezone").takeIf { !it.isNaN() },
                 )
                 if (iata.isNotEmpty()) {
                     map[iata.uppercase(Locale.ROOT)] = a
