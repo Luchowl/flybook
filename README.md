@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/Luchowl/flybook/releases">
-    <img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version">
+    <img src="https://img.shields.io/badge/version-v1.0.2-blue" alt="Version">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT">
