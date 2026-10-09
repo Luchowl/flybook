@@ -10,3 +10,5 @@ keystore.properties
 captures/
 .externalNativeBuild/
 .cxx/
+fdroid/SUBMISSION-NOTES.md
+AGENTS.md
