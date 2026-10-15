@@ -1,6 +1,11 @@
 package com.luchowl.flybook.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +54,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -360,6 +371,8 @@ fun FlightsScreen(vm: FlybookViewModel = viewModel()) {
     var selectedYear by remember { mutableStateOf(0) }
     var sortMenuOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    var searchVisible by remember { mutableStateOf(true) }
+    var searchFocused by remember { mutableStateOf(false) }
 
     val years = remember(flights) { Stats.years(flights) }
     val display = remember(flights, sortKey, selectedYear, query) {
@@ -367,10 +380,47 @@ fun FlightsScreen(vm: FlybookViewModel = viewModel()) {
     }
     val displayModels = remember(display) { display.map { buildFlightRowModel(it) } }
     val listState = rememberLazyListState()
+    val searchScrollThreshold = with(LocalDensity.current) { 12.dp.toPx() }
+    val keepSearchVisible = searchFocused || query.isNotEmpty()
+    val searchScrollConnection = remember(searchScrollThreshold, keepSearchVisible) {
+        object : NestedScrollConnection {
+            private var accumulatedScroll = 0f
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                if (keepSearchVisible) return Offset.Zero
+
+                val delta = if (searchVisible) consumed.y else consumed.y + available.y
+                if (delta == 0f) return Offset.Zero
+
+                if (accumulatedScroll != 0f && (delta > 0f) != (accumulatedScroll > 0f)) {
+                    accumulatedScroll = 0f
+                }
+                accumulatedScroll += delta
+
+                if (accumulatedScroll <= -searchScrollThreshold && searchVisible) {
+                    searchVisible = false
+                    accumulatedScroll = 0f
+                } else if (accumulatedScroll >= searchScrollThreshold && !searchVisible) {
+                    searchVisible = true
+                    accumulatedScroll = 0f
+                }
+                return Offset.Zero
+            }
+        }
+    }
 
     // Jump to the top so the new order is immediately visible
     LaunchedEffect(sortKey, selectedYear, query, flights) {
         listState.scrollToItem(0)
+        searchVisible = true
+    }
+
+    LaunchedEffect(keepSearchVisible) {
+        if (keepSearchVisible) searchVisible = true
     }
 
     // System back gesture behaves like the in-app back arrow.
@@ -441,19 +491,31 @@ fun FlightsScreen(vm: FlybookViewModel = viewModel()) {
             }
         } else {
             Column(Modifier.fillMaxSize().padding(pad)) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = { Text("Search reg, airline, airport…") },
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    trailingIcon = {
-                        if (query.isNotEmpty()) {
-                            IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, contentDescription = "Clear") }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+                AnimatedVisibility(
+                    visible = searchVisible || keepSearchVisible,
+                    enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                    exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
+                ) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = { Text("Search reg, airline, airport…") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (query.isNotEmpty()) {
+                                IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, contentDescription = "Clear") }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .onFocusChanged {
+                                searchFocused = it.isFocused
+                                if (it.isFocused) searchVisible = true
+                            },
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -506,7 +568,9 @@ fun FlightsScreen(vm: FlybookViewModel = viewModel()) {
                 } else {
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(searchScrollConnection),
                         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 90.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
