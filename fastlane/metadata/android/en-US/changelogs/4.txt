@@ -1,0 +1,3 @@
+- Removed the extra status-bar gap and moved to the standard Material 3 app bar
+- Bottom navigation now hides while scrolling My Flights and Stats, and returns when scrolling up
+- The flight search field collapses while scrolling and stays open while typing or when a search is active
