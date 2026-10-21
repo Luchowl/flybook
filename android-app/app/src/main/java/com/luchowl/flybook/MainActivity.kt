@@ -5,10 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,9 +35,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -74,6 +89,8 @@ private val destinations = listOf(
     Dest("stats", "Stats", Icons.Default.Leaderboard),
     Dest("settings", "Settings", Icons.Default.Settings),
 )
+
+private val autoHideBottomBarRoutes = setOf("flights", "stats")
 
 @Composable
 private fun CompactBottomBar(selectedRoute: String?, onSelect: (String) -> Unit) {
@@ -119,22 +136,71 @@ private fun FlybookRoot() {
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
+    val currentRoute = currentDestination?.route
+    val autoHideBottomBar = currentRoute in autoHideBottomBarRoutes
+    var bottomBarVisible by remember { mutableStateOf(true) }
+    val scrollThreshold = with(LocalDensity.current) { 24.dp.toPx() }
+    val scrollConnection = remember(scrollThreshold, autoHideBottomBar) {
+        object : NestedScrollConnection {
+            private var accumulatedScroll = 0f
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                if (!autoHideBottomBar) return Offset.Zero
+
+                val delta = if (bottomBarVisible) consumed.y else consumed.y + available.y
+                if (delta == 0f) return Offset.Zero
+
+                if (accumulatedScroll != 0f && (delta > 0f) != (accumulatedScroll > 0f)) {
+                    accumulatedScroll = 0f
+                }
+                accumulatedScroll += delta
+
+                if (accumulatedScroll <= -scrollThreshold && bottomBarVisible) {
+                    bottomBarVisible = false
+                    accumulatedScroll = 0f
+                } else if (accumulatedScroll >= scrollThreshold && !bottomBarVisible) {
+                    bottomBarVisible = true
+                    accumulatedScroll = 0f
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    LaunchedEffect(currentRoute) {
+        bottomBarVisible = true
+    }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollConnection),
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            CompactBottomBar(
-                selectedRoute = currentDestination?.route,
-                onSelect = { route ->
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            AnimatedVisibility(
+                visible = bottomBarVisible,
+                enter = slideInVertically(initialOffsetY = { it }) +
+                    expandVertically(expandFrom = Alignment.Bottom),
+                exit = slideOutVertically(targetOffsetY = { it }) +
+                    shrinkVertically(shrinkTowards = Alignment.Bottom),
+            ) {
+                CompactBottomBar(
+                    selectedRoute = currentRoute,
+                    onSelect = { route ->
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         NavHost(

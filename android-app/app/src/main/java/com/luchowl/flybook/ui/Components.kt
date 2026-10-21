@@ -13,15 +13,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -170,36 +172,29 @@ fun SectionHeader(title: String, trailing: (@Composable () -> Unit)? = null) {
     }
 }
 
-/**
- * Compact screen header (as short as the title itself — no fixed bar height).
- */
+/** Standard Material 3 screen header with system-bar insets. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenTopBar(
     title: String,
     navigationIcon: (@Composable () -> Unit)? = null,
     actions: (@Composable () -> Unit)? = null,
 ) {
-    Surface(color = MaterialTheme.colorScheme.background) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 4.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (navigationIcon != null) navigationIcon()
+    TopAppBar(
+        title = {
             Text(
                 title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 8.dp),
             )
-            if (actions != null) actions()
-        }
-    }
+        },
+        navigationIcon = { navigationIcon?.invoke() },
+        actions = { actions?.invoke() },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+        ),
+    )
 }
 
 /**
