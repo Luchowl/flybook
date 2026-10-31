@@ -59,6 +59,7 @@ import com.luchowl.flybook.data.Airport
 import com.luchowl.flybook.data.ReferenceData
 import com.luchowl.flybook.ui.FlybookViewModel
 import com.luchowl.flybook.ui.ScreenTopBar
+import com.luchowl.flybook.ui.globe.GlobeView
 import com.luchowl.flybook.util.FlightRoute
 import com.luchowl.flybook.util.Stats
 import org.osmdroid.config.Configuration
@@ -128,6 +129,8 @@ private object MapPrefs {
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     fun tileId(c: Context): String = prefs(c).getString("tile", "standard") ?: "standard"
     fun setTileId(c: Context, id: String) { prefs(c).edit().putString("tile", id).apply() }
+    fun viewId(c: Context): String = prefs(c).getString("view", "globe") ?: "globe"
+    fun setViewId(c: Context, id: String) { prefs(c).edit().putString("view", id).apply() }
     fun lineColor(c: Context): Int = prefs(c).getInt("line_color", 0xFF60A5FA.toInt())
     fun setLineColor(c: Context, color: Int) { prefs(c).edit().putInt("line_color", color).apply() }
     fun markerColor(c: Context): Int = prefs(c).getInt("marker_color", 0xFF22D3EE.toInt())
@@ -143,6 +146,7 @@ fun MapScreen(vm: FlybookViewModel = viewModel()) {
 
     val context = LocalContext.current
     var tileId by rememberSaveable { mutableStateOf(MapPrefs.tileId(context)) }
+    var viewId by rememberSaveable { mutableStateOf(MapPrefs.viewId(context)) }
     var lineColor by rememberSaveable { mutableIntStateOf(MapPrefs.lineColor(context)) }
     var markerColor by rememberSaveable { mutableIntStateOf(MapPrefs.markerColor(context)) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -163,13 +167,19 @@ fun MapScreen(vm: FlybookViewModel = viewModel()) {
         contentWindowInsets = WindowInsets(0),
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad)) {
-            OsmdroidMap(routes, ref, tileId, lineColor, markerColor, Modifier.fillMaxSize())
+            if (viewId == "globe") {
+                GlobeView(routes, ref, lineColor, markerColor, Modifier.fillMaxSize())
+            } else {
+                OsmdroidMap(routes, ref, tileId, lineColor, markerColor, Modifier.fillMaxSize())
+            }
 
             if (showSettings) {
                 MapSettingsPanel(
+                    viewId = viewId,
                     tileId = tileId,
                     lineColor = lineColor,
                     markerColor = markerColor,
+                    onView = { viewId = it; MapPrefs.setViewId(context, it) },
                     onTile = { tileId = it; MapPrefs.setTileId(context, it) },
                     onColor = { lineColor = it; MapPrefs.setLineColor(context, it) },
                     onMarkerColor = { markerColor = it; MapPrefs.setMarkerColor(context, it) },
@@ -202,9 +212,11 @@ fun MapScreen(vm: FlybookViewModel = viewModel()) {
 
 @Composable
 private fun MapSettingsPanel(
+    viewId: String,
     tileId: String,
     lineColor: Int,
     markerColor: Int,
+    onView: (String) -> Unit,
     onTile: (String) -> Unit,
     onColor: (Int) -> Unit,
     onMarkerColor: (Int) -> Unit,
@@ -218,26 +230,17 @@ private fun MapSettingsPanel(
         shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Map style", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-            tileStyles.forEach { style ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onTile(style.id) }
-                        .padding(vertical = 3.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        style.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (tileId == style.id) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (tileId == style.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (tileId == style.id) {
-                        Spacer(Modifier.weight(1f))
-                        Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    }
+            Text("View", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            listOf("globe" to "3D globe (offline)", "map" to "2D map (online tiles)").forEach { (id, name) ->
+                OptionRow(name, selected = viewId == id) { onView(id) }
+            }
+
+            if (viewId == "map") {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                Text("Map style", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                tileStyles.forEach { style ->
+                    OptionRow(style.name, selected = tileId == style.id) { onTile(style.id) }
                 }
             }
 
@@ -250,6 +253,29 @@ private fun MapSettingsPanel(
 
             Text("Marker color", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
             ColorSwatches(selected = markerColor, onSelect = onMarkerColor)
+        }
+    }
+}
+
+@Composable
+private fun OptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (selected) {
+            Spacer(Modifier.weight(1f))
+            Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
     }
 }
