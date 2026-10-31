@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/Luchowl/flybook/releases">
-    <img src="https://img.shields.io/badge/version-v1.0.3-blue" alt="Version">
+    <img src="https://img.shields.io/badge/version-v1.0.4-blue" alt="Version">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT">
@@ -27,7 +27,8 @@
 - **Smart auto-enrichment** — enter just the airport IATA/ICAO codes and airline, and Flybook fills in the rest from bundled reference data: airport names, cities, countries, airline names, aircraft names, and even computes great-circle distance and estimated duration.
 - **Dashboard** — at-a-glance stats (flights, distance, time in air, airlines, countries, airports) plus a monthly activity chart and a collection of unlockable achievements.
 - **Your Flight Story** — a "wrapped"-style review of your flying history.
-- **Flight map** — every route drawn on an interactive map (osmdroid) with multiple base styles (Standard, Satellite, Terrain, Minimal, Dark), geodesic route lines, and color customization.
+- **3D globe** — every route drawn as a great-circle arc on an interactive, fully offline globe (Natural Earth outlines bundled in the app). Spin, pinch or double-tap to zoom, tap an airport for details.
+- **Flight map** — optional 2D map (osmdroid) with multiple base styles (Standard, Satellite, Terrain, Minimal, Dark), geodesic route lines, and color customization.
 - **Stats & rankings** — drill into most-flown aircraft, airlines, routes, airports, tail registrations, seats, and countries, with averages, longest haul, and more highlights.
 - **Import / Export** — export your logbook as CSV or JSON, or import an existing CSV using the my.flightradar24.com export format (also compatible with Flybook's own export).
 - **Fully offline & private** — all data is stored locally on-device (Room database). No account, no cloud, no tracking.
@@ -91,7 +92,7 @@ Flybook is built around your privacy:
 
 - **100% local** — your logbook lives in a local database (Room) on your device. Nothing is ever uploaded.
 - **No account, no cloud, no tracking** — there is no sign-in, no analytics, and no third-party SDKs collecting your data.
-- **Works offline** — the app is fully functional without an internet connection. The only network access is the flight map fetching map tiles from public OpenStreetMap-based tile servers (and only when you open the map).
+- **Works offline** — the app is fully functional without an internet connection. The default 3D globe needs no network at all; the only network access is the optional 2D map fetching tiles from public OpenStreetMap-based tile servers (and only when you switch to it).
 - **You own your data** — export your logbook anytime as CSV or JSON, and delete it all from the app whenever you like.
 
 ## Project Structure
@@ -104,6 +105,7 @@ android-app/
 │   ├── data/                    # Room DB, DAO, repository, reference data, enrichment
 │   ├── ui/                      # Theme, shared components, ViewModel
 │   ├── ui/screens/              # Dashboard, Flights, Map, Stats, Settings, Wrapped
+│   ├── ui/globe/                # Offline 3D globe (projection math, rendering, world outline)
 │   └── util/                    # CSV, stats, formatting helpers
 └── app/src/main/assets/         # airports.json, airlines.json, planes.json
 ```

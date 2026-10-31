@@ -1,0 +1,3 @@
+- New 3D globe for the flight map: routes as great-circle arcs, spin, pinch or double-tap to zoom, tap an airport for details
+- The globe works fully offline (bundled Natural Earth outlines); the 2D map is still available in map settings
+- Handles very large logbooks smoothly

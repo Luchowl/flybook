@@ -7,8 +7,9 @@
 <li>Smart auto-enrichment: enter airport IATA/ICAO codes and an airline, and Flybook fills in names, cities, countries, aircraft types, great-circle distance, and estimated duration from bundled reference data</li>
 <li>Dashboard with at-a-glance stats: flights, distance, time in air, airlines, countries, and airports, plus a monthly activity chart and unlockable achievements</li>
 <li>Your Flight Story: a wrapped-style review of your flying history</li>
-<li>Flight map: every route drawn on an interactive map with multiple base styles, geodesic route lines, and color customization</li>
+<li>3D globe: every route drawn as a great-circle arc on an interactive, fully offline globe — spin, zoom and tap airports for details</li>
+<li>Optional 2D flight map with multiple base styles, geodesic route lines, and color customization</li>
 <li>Stats and rankings: most-flown aircraft, airlines, routes, airports, tail registrations, seats, and countries</li>
 <li>Import and export your logbook as CSV or JSON, including my.flightradar24.com export format</li>
-<li>Fully offline: the only network access is fetching map tiles when you open the map, from one of the bundled servers — OpenStreetMap (tile.openstreetmap.org), OpenTopoMap (tile.opentopomap.org), CARTO (basemaps.cartocdn.com), or USGS satellite imagery (basemap.nationalmap.gov)</li>
+<li>Fully offline: the 3D globe works without any network; the only network access is fetching tiles when you switch to the optional 2D map, from one of the bundled servers — OpenStreetMap (tile.openstreetmap.org), OpenTopoMap (tile.opentopomap.org), CARTO (basemaps.cartocdn.com), or USGS satellite imagery (basemap.nationalmap.gov)</li>
 </ul>
