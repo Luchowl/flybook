@@ -7,6 +7,7 @@ import com.luchowl.flybook.util.Format
 data class FlightRoute(
     val depLat: Double, val depLon: Double,
     val arrLat: Double, val arrLon: Double,
+    val flight: Flight? = null,
 )
 
 data class OverallStats(
@@ -92,7 +93,7 @@ object Stats {
             val arr = ref.airport(f.arrivalIata.ifEmpty { f.arrivalIcao }) ?: continue
             if (dep.lat == 0.0 && dep.lon == 0.0) continue
             if (arr.lat == 0.0 && arr.lon == 0.0) continue
-            out += FlightRoute(dep.lat, dep.lon, arr.lat, arr.lon)
+            out += FlightRoute(dep.lat, dep.lon, arr.lat, arr.lon, f)
         }
         return out
     }

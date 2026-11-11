@@ -144,3 +144,111 @@ internal class GlobeCamera(centerLat: Double, centerLon: Double) {
      */
     fun visible(p: FloatArray, i: Int): Boolean = depth(p, i) >= 0f
 }
+
+/** Growable buffer of (x, y) pairs, reused across frames. */
+internal class PointBuffer {
+    var data = FloatArray(4096)
+    var size = 0
+
+    fun reset() { size = 0 }
+
+    fun add(x: Float, y: Float) {
+        if (size + 2 > data.size) data = data.copyOf(data.size * 2)
+        data[size] = x; data[size + 1] = y
+        size += 2
+    }
+}
+
+/**
+ * Clips closed land rings to the visible hemisphere. The result is a polygon in
+ * unit-disc coordinates (same axes as [GlobeCamera.sx]/[GlobeCamera.sy]): visible
+ * vertices are projected as-is, the ring enters/leaves the disc exactly where it
+ * crosses the horizon, and the hidden stretch in between is replaced by an arc
+ * that follows the limb.
+ *
+ * Filling that polygon colours the side of the ring that does not contain the
+ * point opposite the camera. When that antipode is itself on land the fill is
+ * inverted, so the caller must count the drawn rings that [contains] the antipode
+ * and, if the count is odd, add the full disc to an even-odd fill.
+ */
+internal class LandClipper {
+    val out = PointBuffer()
+    private var onLimb = false
+    private var limbAngle = 0f
+
+    /**
+     * Clips [ring] (xyz triples, first point repeated at the end) into [out].
+     * Returns false, leaving [out] undefined, when no vertex is visible.
+     * Limb arcs are sampled at most [maxStep] radians apart.
+     */
+    fun clip(ring: FloatArray, cam: GlobeCamera, maxStep: Float): Boolean {
+        out.reset()
+        var anyVisible = false
+        var i = 0
+        while (i < ring.size) {
+            if (cam.depth(ring, i) >= 0f) { anyVisible = true; break }
+            i += 3
+        }
+        if (!anyVisible) return false
+
+        onLimb = false
+        var prevD = 0f
+        var prevX = 0f
+        var prevY = 0f
+        i = 0
+        while (i < ring.size) {
+            val x = cam.sx(ring, i)
+            val y = cam.sy(ring, i)
+            val d = cam.depth(ring, i)
+            if (i > 0 && (prevD >= 0f) != (d >= 0f)) {
+                val t = prevD / (prevD - d)
+                limb(prevX + (x - prevX) * t, prevY + (y - prevY) * t, maxStep)
+            }
+            if (d >= 0f) {
+                out.add(x, y)
+                onLimb = false
+            } else {
+                limb(x, y, maxStep)
+            }
+            prevD = d; prevX = x; prevY = y
+            i += 3
+        }
+        return true
+    }
+
+    /** Adds the limb point in direction (x, y), joined to a preceding limb point along the limb. */
+    private fun limb(x: Float, y: Float, maxStep: Float) {
+        val len = sqrt(x * x + y * y)
+        if (len < 1e-6f) return // exactly opposite the camera: no direction
+        val angle = atan2(y, x)
+        if (onLimb) {
+            var delta = angle - limbAngle
+            if (delta > PI) delta -= (2 * PI).toFloat() else if (delta < -PI) delta += (2 * PI).toFloat()
+            val steps = ceil(abs(delta) / maxStep).toInt()
+            for (s in 1 until steps) {
+                val a = limbAngle + delta * s / steps
+                out.add(cos(a), sin(a))
+            }
+        }
+        out.add(x / len, y / len)
+        onLimb = true
+        limbAngle = angle
+    }
+
+    companion object {
+        /** Even-odd point-in-polygon test on a flat [lon, lat, …] ring. */
+        fun contains(lonLat: FloatArray, lon: Float, lat: Float): Boolean {
+            var inside = false
+            var j = lonLat.size - 2
+            var i = 0
+            while (i < lonLat.size) {
+                val xi = lonLat[i]; val yi = lonLat[i + 1]
+                val xj = lonLat[j]; val yj = lonLat[j + 1]
+                if ((yi > lat) != (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside
+                j = i
+                i += 2
+            }
+            return inside
+        }
+    }
+}

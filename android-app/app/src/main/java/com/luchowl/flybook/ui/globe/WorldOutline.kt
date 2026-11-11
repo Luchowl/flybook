@@ -14,6 +14,8 @@ import org.json.JSONObject
 internal class WorldOutline(
     val land: List<FloatArray>,
     val borders: List<FloatArray>,
+    /** The [land] rings as flat [lon, lat, …] degrees, for point-in-polygon tests. */
+    val landLonLat: List<FloatArray>,
 ) {
     companion object {
         @Volatile
@@ -28,7 +30,15 @@ internal class WorldOutline(
 
         internal fun parse(json: String): WorldOutline {
             val root = JSONObject(json)
-            return WorldOutline(lines(root.getJSONArray("land")), lines(root.getJSONArray("borders")))
+            val land = root.getJSONArray("land")
+            return WorldOutline(
+                lines(land),
+                lines(root.getJSONArray("borders")),
+                List(land.length()) { i ->
+                    val flat = land.getJSONArray(i)
+                    FloatArray(flat.length()) { flat.getDouble(it).toFloat() }
+                },
+            )
         }
 
         private fun lines(arr: JSONArray): List<FloatArray> = List(arr.length()) { i ->

@@ -151,62 +151,70 @@ fun MapScreen(vm: FlybookViewModel = viewModel()) {
     var markerColor by rememberSaveable { mutableIntStateOf(MapPrefs.markerColor(context)) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
+    // Flight opened from an airport card; drawn over the map so the globe keeps its state.
+    var detailId by rememberSaveable { mutableStateOf<String?>(null) }
+    val detail = detailId?.let { id -> flights.firstOrNull { it.id == id } }
+
     BackHandler(enabled = showSettings) { showSettings = false }
+    BackHandler(enabled = detail != null) { detailId = null }
 
-    Scaffold(
-        topBar = {
-            ScreenTopBar(
-                title = "Flight Map",
-                actions = {
-                    IconButton(onClick = { showSettings = !showSettings }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Tune, contentDescription = "Map settings")
-                    }
-                },
-            )
-        },
-        contentWindowInsets = WindowInsets(0),
-    ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad)) {
-            if (viewId == "globe") {
-                GlobeView(routes, ref, lineColor, markerColor, Modifier.fillMaxSize())
-            } else {
-                OsmdroidMap(routes, ref, tileId, lineColor, markerColor, Modifier.fillMaxSize())
-            }
-
-            if (showSettings) {
-                MapSettingsPanel(
-                    viewId = viewId,
-                    tileId = tileId,
-                    lineColor = lineColor,
-                    markerColor = markerColor,
-                    onView = { viewId = it; MapPrefs.setViewId(context, it) },
-                    onTile = { tileId = it; MapPrefs.setTileId(context, it) },
-                    onColor = { lineColor = it; MapPrefs.setLineColor(context, it) },
-                    onMarkerColor = { markerColor = it; MapPrefs.setMarkerColor(context, it) },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 4.dp, end = 8.dp)
-                        .width(210.dp),
+    Box(Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                ScreenTopBar(
+                    title = "Flight Map",
+                    actions = {
+                        IconButton(onClick = { showSettings = !showSettings }, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Tune, contentDescription = "Map settings")
+                        }
+                    },
                 )
-            }
+            },
+            contentWindowInsets = WindowInsets(0),
+        ) { pad ->
+            Box(Modifier.fillMaxSize().padding(pad)) {
+                if (viewId == "globe") {
+                    GlobeView(routes, ref, lineColor, markerColor, Modifier.fillMaxSize(), onFlightClick = { detailId = it.id })
+                } else {
+                    OsmdroidMap(routes, ref, tileId, lineColor, markerColor, Modifier.fillMaxSize())
+                }
 
-            when {
-                loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.primary,
+                if (showSettings) {
+                    MapSettingsPanel(
+                        viewId = viewId,
+                        tileId = tileId,
+                        lineColor = lineColor,
+                        markerColor = markerColor,
+                        onView = { viewId = it; MapPrefs.setViewId(context, it) },
+                        onTile = { tileId = it; MapPrefs.setTileId(context, it) },
+                        onColor = { lineColor = it; MapPrefs.setLineColor(context, it) },
+                        onMarkerColor = { markerColor = it; MapPrefs.setMarkerColor(context, it) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 4.dp, end = 8.dp)
+                            .width(210.dp),
                     )
                 }
-                routes.isEmpty() -> {
-                    Text(
-                        "No flight routes yet.\nAdd flights with airport codes to see your routes.",
-                        modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+
+                when {
+                    loading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    routes.isEmpty() -> {
+                        Text(
+                            "No flight routes yet.\nAdd flights with airport codes to see your routes.",
+                            modifier = Modifier.align(Alignment.Center),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
+        detail?.let { FlightDetailScreen(flight = it, onBack = { detailId = null }) }
     }
 }
 
