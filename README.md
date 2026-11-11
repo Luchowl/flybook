@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/Luchowl/flybook/releases">
-    <img src="https://img.shields.io/badge/version-v1.0.4-blue" alt="Version">
+    <img src="https://img.shields.io/badge/version-v1.0.5-blue" alt="Version">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/Luchowl/flybook" alt="License: MIT">
@@ -27,7 +27,7 @@
 - **Smart auto-enrichment** — enter just the airport IATA/ICAO codes and airline, and Flybook fills in the rest from bundled reference data: airport names, cities, countries, airline names, aircraft names, and even computes great-circle distance and estimated duration.
 - **Dashboard** — at-a-glance stats (flights, distance, time in air, airlines, countries, airports) plus a monthly activity chart and a collection of unlockable achievements.
 - **Your Flight Story** — a "wrapped"-style review of your flying history.
-- **3D globe** — every route drawn as a great-circle arc on an interactive, fully offline globe (Natural Earth outlines bundled in the app). Spin, pinch or double-tap to zoom, tap an airport for details.
+- **3D globe** — every route drawn as a great-circle arc on an interactive, fully offline globe (Natural Earth outlines bundled in the app). Spin, pinch or double-tap to zoom right into a cluster of airports, tap an airport to list the flights that used it.
 - **Flight map** — optional 2D map (osmdroid) with multiple base styles (Standard, Satellite, Terrain, Minimal, Dark), geodesic route lines, and color customization.
 - **Stats & rankings** — drill into most-flown aircraft, airlines, routes, airports, tail registrations, seats, and countries, with averages, longest haul, and more highlights.
 - **Import / Export** — export your logbook as CSV or JSON, or import an existing CSV using the my.flightradar24.com export format (also compatible with Flybook's own export).

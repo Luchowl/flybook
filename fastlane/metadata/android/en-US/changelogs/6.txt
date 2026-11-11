@@ -1,0 +1,4 @@
+- Globe: fixed land and sea flickering or swapping while spinning
+- Globe: zoom much closer (up to 24x) to tell nearby airports apart; pinch and double-tap zoom into the spot under your fingers
+- Tap an airport, then its card, to list the flights that used it; tap a flight to open its details
+- Route arcs no longer stick out past the edge of the globe
